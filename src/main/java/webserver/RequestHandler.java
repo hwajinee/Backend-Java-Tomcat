@@ -2,8 +2,11 @@ package webserver;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 
 public class RequestHandler implements Runnable{
     Socket connection;
@@ -20,9 +23,33 @@ public class RequestHandler implements Runnable{
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
             DataOutputStream dos = new DataOutputStream(out);
 
-            byte[] body = "Hello World".getBytes();
-            response200Header(dos, body.length);
-            responseBody(dos, body);
+            byte[] body = new byte[0];
+
+            // 시작줄 분석
+            String startLine = br.readLine();
+            String[] startLines = startLine.split(" ");
+            String method = startLines[0];
+            String url = startLines[1];
+
+            // header info
+            int requestContentLength = 0;
+            String cookie = "";
+
+            while(true) {
+                final String line = br.readLine();
+                if (line.equals("")) {
+                    break;
+                }
+
+                if(line.startsWith("Content-Length")) {
+                    requestContentLength = Integer.parseInt(line.split(":")[1]);
+                }
+                if(line.startsWith("cookie")) {
+                    cookie = line.split(":")[1];
+                }
+            }
+
+
 
         } catch (IOException e) {
             log.log(Level.SEVERE,e.getMessage());
